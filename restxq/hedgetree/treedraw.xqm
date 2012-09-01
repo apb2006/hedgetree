@@ -50,3 +50,47 @@ declare function hedge:drawnode($node){
  )
 };
 
+declare function hedge2xml($hedge as xs:string) as element(node)*{
+  if($hedge="") then ()
+  else if (fn:substring($hedge, 1, 1)="{") then
+    hedge2xml(fn:substring-before(fn:substring($hedge,2), '}'),fn:substring-after($hedge, '}'))
+  else
+    hedge2xml(fn:substring($hedge,1,1),fn:substring($hedge,2))  
+};
+
+declare %private function hedge2xml($head as xs:string,$rest as xs:string) as element(node)* {
+ if($head="(" or $head=")"  or $head="") then
+   fn:error() 
+ else if (fn:substring($rest,1, 1)="(") then
+   let $endPos:=closingParenPos2($rest,2,1)
+   return (<node label="{$head}">{hedge2xml(fn:substring($rest, 2, $endPos -2 ))}</node>
+           ,hedge2xml(fn:substring($rest, 1+$endPos))
+           )        
+ else 
+     (<node label="{$head}"/> ,hedge2xml($rest))
+};
+
+(:~
+: @param $arg string to be searched
+: @param $substring what to look for
+: @param $startpos first position to search
+: @return index or -1 if not found   
+:)
+declare function string-index 
+( $arg as xs:string? , $substring as xs:string , $startPos as xs:integer )  as xs:integer {
+  let $s:=fn:substring($arg,$startPos)       
+  return if (fn:contains($s, $substring))
+         then $startPos+fn:string-length(fn:substring-before($s, $substring))
+         else -1
+};
+
+declare function closingParenPos2($text as xs:string,$pos as xs:integer ,$depth as xs:integer ) as xs:integer{
+  let $start:=string-index($text,"(",$pos)
+  let $end:=string-index($text,")",$pos)
+  return 
+      if($end=-1 or $start=-1 or $end < $start ) then
+          if($depth=1) then 
+          $end 
+          else closingParenPos2($text,$end+1,$depth -1)        
+      else  closingParenPos2($text,$start+1,$depth+1)     
+};
