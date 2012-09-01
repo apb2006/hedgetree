@@ -50,6 +50,21 @@ declare function hedge:drawnode($node){
  )
 };
 
+(: insert depth and width :)
+declare function layout($element as element(),$depth) as element() {
+   element {fn:node-name($element)}
+      {$element/@*,
+       attribute{ "depth"}{ $depth},
+       attribute{ "width"}{width($element)},
+      for $child in $element/*
+      return layout($child,$depth+1)
+      }
+};
+
+declare function width($e){
+  fn:max((1,fn:sum($e/*/width(.))))
+};
+
 declare function hedge2xml($hedge as xs:string) as element(node)*{
   if($hedge="") then ()
   else if (fn:substring($hedge, 1, 1)="{") then

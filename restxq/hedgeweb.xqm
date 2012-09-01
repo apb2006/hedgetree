@@ -15,7 +15,7 @@ declare
 %output:method("html5")
 function hedge() {
  <form method="post" action="./hedge">
- <input type="text" name="hedge" value="a(bc)d"/>
+ <input type="text" name="hedge" value="a(bc)"/>
  <button type="submit">Go</button>
 </form>
 };
@@ -26,7 +26,18 @@ declare
 %output:method("html5")
 function hedge-post($hedge) {
 let $xml:=tree:hedge2xml($hedge)
+let $layout:=tree:layout($xml,1)
+let $svg:=tree:svg($layout)
 return <div>{$hedge}
+<div>
+{$svg}
+</div>
+<pre>
+ {fn:serialize($svg)}
+ </pre>
+<pre>
+ {fn:serialize($layout)}
+ </pre>
 <pre>
  {fn:serialize($xml)}
  </pre>
