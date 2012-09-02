@@ -12,13 +12,13 @@ declare function hedge:svg($layout){
     let $maxDepth:=fn:max($layout//@depth)
     let $width:=fn:sum($layout/@width)
     return 
-    <svg:svg xmlns:xlink="http://www.w3.org/1999/xlink"
+    <svg xmlns = "http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox = "0 0 {$width * 2 * $hedge:scale} {$maxDepth * 2 * $hedge:scale}"
     version="1.1" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-        <svg:g transform = "translate(0,-{$hedge:scale div 2}) scale({$hedge:scale})">
+        <g transform = "translate(0,-{$hedge:scale div 2}) scale({$hedge:scale})">
           {for $node in $layout return hedge:draw-node($node)}
-        </svg:g>
-      </svg:svg>
+        </g>
+      </svg>
 };
 
 declare function hedge:draw-node($node  as element(node)){
@@ -30,24 +30,24 @@ declare function hedge:draw-node($node  as element(node)){
   let $width:=svg-textlen($node/@label)
   return ( 
  
-  <svg:g>
-  <svg:a >
+  <g xmlns = "http://www.w3.org/2000/svg">
+  <a >
       {if($node/@href) then 
        attribute xlink:href {$node/@href/fn:string()}
        else ()}
-      <svg:title>Debug info: x coord= {$x1}</svg:title>
-      <svg:rect x = "{$x - 0.9*$width}" y="{$y - 1}" width = "{1.8 * $width}" height="1" rx = "0.4" ry = "0.4"
+      <title>Debug info: x coord= {$x1}</title>
+      <rect x = "{$x - 0.9*$width}" y="{$y - 1}" width = "{1.8 * $width}" height="1" rx = "0.4" ry = "0.4"
                 style = "fill: yellow; stroke: black; stroke-width: 0.1;"/>
-      <svg:text x = "{$x}" y = "{$y - 0.2}" font-size="0.9" text-anchor="middle">
+      <text x = "{$x}" y = "{$y - 0.2}" font-size="0.9" text-anchor="middle">
         {$node/@label/fn:string()}
-      </svg:text>
-      </svg:a>
-  </svg:g>,          
+      </text>
+      </a>
+  </g>,          
   (: lines :)
   for $n in $node/node
      let $x1:=fn:sum($n/preceding::node[@depth = $n/@depth or (fn:not($n/node) and @depth <= $n/@depth)]/@width)
      let $x2:=($x1 + ($n/@width div 2)) * 2  
-    return  <svg:line x1 = "{$x}"
+    return  <line x1 = "{$x}"
               y1 = "{$y}"
               x2 = "{$x2}"
               y2 = "{$n/@depth * 2 - 1}"

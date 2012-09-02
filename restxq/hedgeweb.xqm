@@ -45,6 +45,12 @@ return <html>
     <pre>
      {fn:serialize($xml)}
      </pre>
+       <h2 id="isvg">svg inline</h2>
+       {$svg}
+         <h2 id="xsvg">svg test</h2>
+          <svg:svg xmlns:svg="http://www.w3.org/2000/svg" version="1.1" height="190">
+              <svg:polygon points="100,10 40,180 190,60 10,60 160,180" style="fill:lime;stroke:purple;stroke-width:5;fill-rule:evenodd;"></svg:polygon>
+            </svg:svg>
     </body>
 </html>
 };
