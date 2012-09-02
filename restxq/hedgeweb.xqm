@@ -13,7 +13,7 @@ declare namespace rest = 'http://exquery.org/ns/restxq';
 declare 
 %rest:GET %rest:path("hedge") 
 %output:method("html5")
-%rest:form-param("hedge","{$hedge}","a(bc)") 
+%rest:form-param("hedge","{$hedge}","{top}({next}{level}({more}{or}{less}))") 
 function hedge($hedge) {
 let $xml:=tree:hedge2xml($hedge)
 let $layout:=tree:layout($xml,1)
@@ -24,20 +24,24 @@ return <html>
     </head>
     <body>
      <form method="get" action="./hedge">
-     <input type="text" name="hedge" value="{$hedge}"/>
+     <textarea name="hedge" rows="5" cols="50">{$hedge}</textarea>
      <button type="submit">Go</button>
     </form>
-    <a href="svg?hedge={$hedge}">svg</a>
+    
+    <h2 id="svg"><a href="svg?hedge={$hedge}">svg</a> object</h2>
     <object height="150" width="500" data="svg?hedge={$hedge}" 
     style="border:5px solid red;" type="image/svg+xml">
     SVG Here
     </object>
+    <h2 id="svgxml">SVG xml</h2>
     <pre>
      {fn:serialize($svg)}
      </pre>
+     <h2 id="layout">Layout xml</h2>    
     <pre>
      {fn:serialize($layout)}
      </pre>
+      <h2 id="treexml">Tree xml</h2>
     <pre>
      {fn:serialize($xml)}
      </pre>

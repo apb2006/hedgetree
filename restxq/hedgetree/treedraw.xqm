@@ -5,21 +5,23 @@ module namespace hedge = 'apb.tree';
 declare default function namespace 'apb.tree';
 import module namespace svg-util='http://code.google.com/p/xrx/svg-util' at "svg-utilities.xqm";
 declare namespace svg= "http://www.w3.org/2000/svg";
+declare namespace  xlink="http://www.w3.org/1999/xlink";
 declare variable $hedge:scale:=10;
 
 declare function hedge:svg($layout){
-let $maxDepth:=fn:max($layout//@depth)
-let $width:=fn:sum($layout/@width)
-return 
-<svg:svg viewBox = "0 0 {$width * 2 * $hedge:scale} {$maxDepth * 2 * $hedge:scale}"
-version="1.1" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-    <svg:g transform = "translate(0,-{$hedge:scale div 2}) scale({$hedge:scale})">
-      {for $node in $layout return hedge:drawnode($node)}
-    </svg:g>
-  </svg:svg>
+    let $maxDepth:=fn:max($layout//@depth)
+    let $width:=fn:sum($layout/@width)
+    return 
+    <svg:svg xmlns:xlink="http://www.w3.org/1999/xlink"
+    viewBox = "0 0 {$width * 2 * $hedge:scale} {$maxDepth * 2 * $hedge:scale}"
+    version="1.1" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+        <svg:g transform = "translate(0,-{$hedge:scale div 2}) scale({$hedge:scale})">
+          {for $node in $layout return hedge:draw-node($node)}
+        </svg:g>
+      </svg:svg>
 };
 
-declare function hedge:drawnode($node  as element(node)){
+declare function hedge:draw-node($node  as element(node)){
   (: Calculate X coordinate :)
   let $x1:=fn:sum($node/preceding::node[@depth = $node/@depth or (fn:not($node/node) and @depth <= $node/@depth)]/@width)
   let $x:=($x1 + ($node/@width div 2)) * 2
@@ -29,12 +31,17 @@ declare function hedge:drawnode($node  as element(node)){
   return ( 
  
   <svg:g>
-      <svg:title>{$x1}</svg:title>
+  <svg:a >
+      {if($node/@href) then 
+       attribute xlink:href {$node/@href/fn:string()}
+       else ()}
+      <svg:title>Debug info: x coord= {$x1}</svg:title>
       <svg:rect x = "{$x - 0.9*$width}" y="{$y - 1}" width = "{1.8 * $width}" height="1" rx = "0.4" ry = "0.4"
                 style = "fill: yellow; stroke: black; stroke-width: 0.1;"/>
       <svg:text x = "{$x}" y = "{$y - 0.2}" font-size="0.9" text-anchor="middle">
         {$node/@label/fn:string()}
       </svg:text>
+      </svg:a>
   </svg:g>,          
   (: lines :)
   for $n in $node/node
@@ -47,7 +54,7 @@ declare function hedge:drawnode($node  as element(node)){
               style = "stroke-width: 0.1; stroke: black;"/>
  ,
  (: Draw sub-nodes :)
- for $n in  $node/node return hedge:drawnode($n)
+ for $n in  $node/node return hedge:draw-node($n)
  )
 };
 
@@ -64,6 +71,7 @@ return element {fn:node-name($n)}
       {$n/@*,
        attribute{ "depth"}{ $depth},
        attribute{ "width"}{width($n)},
+   (:    attribute{ "href"}{"http://github.com"}, :)
       for $child in $n/*
       return layout($child,$depth+1)
       }
@@ -106,6 +114,7 @@ declare function string-index
          then $startPos+fn:string-length(fn:substring-before($s, $substring))
          else -1
 };
+
 
 declare function closingParenPos2($text as xs:string,$pos as xs:integer ,$depth as xs:integer ) as xs:integer{
   let $start:=string-index($text,"(",$pos)
