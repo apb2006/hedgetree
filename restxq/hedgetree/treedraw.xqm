@@ -7,14 +7,11 @@ declare namespace svg= "http://www.w3.org/2000/svg";
 declare variable $hedge:scale:=10;
 
 declare function hedge:svg($layout){
-let $maxDepth:=4
+let $maxDepth:=fn:max($layout//@depth)
+let $width:=fn:sum($layout/node/@width)
 return 
-<svg:svg viewBox = "0 0 {fn:sum($layout/node/@width) * 2 * $hedge:scale} {$maxDepth * 2 * $hedge:scale}">
-    <!-- Note that some SVG implementations work better when you set explicit width and height also.
-         In that case add following attributes to svg element:
-            width="{fn:sum($layout/node/@width)*5}mm"
-            depth = "{$maxDepth*5}mm"
-            preserveAspectRatio="xMidYMid meet" -->
+<svg:svg viewBox = "0 0 {$width * 2 * $hedge:scale} {$maxDepth * 2 * $hedge:scale}"
+version="1.1" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
     <svg:g transform = "translate(0,-{$hedge:scale div 2}) scale({$hedge:scale})">
       {for $node in $layout return hedge:drawnode($node)}
     </svg:g>
@@ -29,8 +26,8 @@ declare function hedge:drawnode($node){
  
   return 
   (: Draw label of node :)
-  (<svg:text x = "{$x}" y = "{$y - 0.2}" style = "text-anchor: middle; font-size: 0.9;">
-    {$node/@label}
+  (<svg:text x = "{$x}" y = "{$y - 0.2}" font-size="0.9" text-anchor="middle">
+    {$node/@label/fn:string()}
   </svg:text>,
   (: rectangle :)
   <svg:rect x = "{$x - 0.9}" y="{$y - 1}" width = "1.8" height="1" rx = "0.4" ry = "0.4"
@@ -51,12 +48,13 @@ declare function hedge:drawnode($node){
 };
 
 (: insert depth and width :)
-declare function layout($element as element(),$depth) as element() {
-   element {fn:node-name($element)}
-      {$element/@*,
+declare function layout($element as element(node)*,$depth) as element(node)* {
+for $n in $element
+return element {fn:node-name($n)}
+      {$n/@*,
        attribute{ "depth"}{ $depth},
-       attribute{ "width"}{width($element)},
-      for $child in $element/*
+       attribute{ "width"}{width($n)},
+      for $child in $n/*
       return layout($child,$depth+1)
       }
 };
