@@ -3,12 +3,13 @@
 :)
 module namespace hedge = 'apb.tree';
 declare default function namespace 'apb.tree';
+import module namespace svg-util='http://code.google.com/p/xrx/svg-util' at "svg-utilities.xqm";
 declare namespace svg= "http://www.w3.org/2000/svg";
 declare variable $hedge:scale:=10;
 
 declare function hedge:svg($layout){
 let $maxDepth:=fn:max($layout//@depth)
-let $width:=fn:sum($layout/node/@width)
+let $width:=fn:sum($layout/@width)
 return 
 <svg:svg viewBox = "0 0 {$width * 2 * $hedge:scale} {$maxDepth * 2 * $hedge:scale}"
 version="1.1" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
@@ -18,33 +19,42 @@ version="1.1" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
   </svg:svg>
 };
 
-declare function hedge:drawnode($node){
+declare function hedge:drawnode($node  as element(node)){
   (: Calculate X coordinate :)
-  let $x:=(fn:sum($node/preceding::node[@depth = current/$node/@depth or (fn:not($node/node) and $node/@depth <= current/@depth)]/@width) + ($node/@width div 2)) * 2
+  let $x1:=fn:sum($node/preceding::node[@depth = $node/@depth or (fn:not($node/node) and @depth <= $node/@depth)]/@width)
+  let $x:=($x1 + ($node/@width div 2)) * 2
   (: Calculate Y coordinate :)
   let $y := $node/@depth * 2
+  let $width:=svg-textlen($node/@label)
+  return ( 
  
-  return 
-  (: Draw label of node :)
-  (<svg:text x = "{$x}" y = "{$y - 0.2}" font-size="0.9" text-anchor="middle">
-    {$node/@label/fn:string()}
-  </svg:text>,
-  (: rectangle :)
-  <svg:rect x = "{$x - 0.9}" y="{$y - 1}" width = "1.8" height="1" rx = "0.4" ry = "0.4"
-            style = "fill: none; stroke: black; stroke-width: 0.1;"/>,
+  <svg:g>
+      <svg:title>{$x1}</svg:title>
+      <svg:rect x = "{$x - 0.9*$width}" y="{$y - 1}" width = "{1.8 * $width}" height="1" rx = "0.4" ry = "0.4"
+                style = "fill: yellow; stroke: black; stroke-width: 0.1;"/>
+      <svg:text x = "{$x}" y = "{$y - 0.2}" font-size="0.9" text-anchor="middle">
+        {$node/@label/fn:string()}
+      </svg:text>
+  </svg:g>,          
   (: lines :)
   for $n in $node/node
-     let $x2:=(fn:sum($node/preceding::node[@depth = current/@depth or (fn:not($node/node) and @depth  <= current/@depth)]/@width) + ($node/@width div 2)) * 2  
+     let $x1:=fn:sum($n/preceding::node[@depth = $n/@depth or (fn:not($n/node) and @depth <= $n/@depth)]/@width)
+     let $x2:=($x1 + ($n/@width div 2)) * 2  
     return  <svg:line x1 = "{$x}"
               y1 = "{$y}"
               x2 = "{$x2}"
-              y2 = "{$node/@depth * 2 - 1}"
+              y2 = "{$n/@depth * 2 - 1}"
               style = "stroke-width: 0.1; stroke: black;"/>
  ,
  (: Draw sub-nodes :)
- for $n in  $node/node
- return hedge:drawnode($n)
+ for $n in  $node/node return hedge:drawnode($n)
  )
+};
+
+declare function svg-textlen($text as xs:string){
+  (: @TODO better label width 
+  fn:string-length($text) :)
+  svg-util:string-width($text) div 20
 };
 
 (: insert depth and width :)
@@ -59,8 +69,8 @@ return element {fn:node-name($n)}
       }
 };
 
-declare function width($e){
-  fn:max((1,fn:sum($e/*/width(.))))
+declare function width($e as element(node)) {
+  fn:max((svg-textlen($e/@label),fn:sum($e/*/width(.))))
 };
 
 declare function hedge2xml($hedge as xs:string) as element(node)*{
