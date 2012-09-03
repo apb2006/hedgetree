@@ -1,4 +1,4 @@
 
 rsync --verbose  --progress --stats --compress  \
       --recursive --times --perms --links --delete \
-        restxq/* basex@velvet:~/http    
+        src/* basex@velvet:~/http    

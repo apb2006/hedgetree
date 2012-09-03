@@ -43,23 +43,23 @@ function hedge($hedge) {
 		</head>
 		<body>
 		<h1>Drawing trees with XQuery and SVG
-		<small>
-		(@github:<iframe src="http://ghbtns.com/github-btn.html?user=apb2006&amp;repo=hedgetree&amp;type=watch"
-	  allowtransparency="true" frameborder="0" scrolling="0" width="62px" height="20px"></iframe>, 
-	 <iframe title="Twitter Follow Button" style="width: 140px; height: 20px;" class="twitter-follow-button" 
-	 src="http://platform.twitter.com/widgets/follow_button.html?id=twitter-widget-2&amp;lang=en&amp;screen_name=apb1704&amp;show_count=false&amp;show_screen_name=true&amp;size=m" 
-	 allowtransparency="true" scrolling="no" frameborder="0"></iframe>)
-	 </small>  </h1>
+		 </h1>
 		 <form method="get" action="./hedge">
 		 <p>
-		 Enter a tree string below; use letters for nodes and () to enclose subnodes. Use {{...}} for multi character names.
+		 Enter a  string representing a tree in the form below; use letters for nodes and () to enclose subnodes. Use {{...}} for multi character names.
 		 {{name|href}} will create a link.
-		 
+		 <p> Source: @github:<iframe src="http://ghbtns.com/github-btn.html?user=apb2006&amp;repo=hedgetree&amp;type=watch"
+      allowtransparency="true" frameborder="0" scrolling="0" width="62px" height="20px"></iframe>, Author:
+     <iframe title="Twitter Follow Button" style="width: 140px; height: 20px;" class="twitter-follow-button" 
+     src="http://platform.twitter.com/widgets/follow_button.html?id=twitter-widget-2&amp;lang=en&amp;screen_name=apb1704&amp;show_count=false&amp;show_screen_name=true&amp;size=m" 
+     allowtransparency="true" scrolling="no" frameborder="0"></iframe>.
+     </p>       
 		  </p>
 		  <p>
 		  Examples: <a href="?hedge=a(bcd(ef))">a(bcd(ef))</a>, buggy: <a href="?hedge=a(bcd)e(fgh)">a(bcd)e(fgh)</a>
 		  </p>
-		 <textarea name="hedge" rows="5" cols="50">{$hedge}</textarea>
+		      
+		 <textarea name="hedge" rows="3" cols="60">{$hedge}</textarea>
 		 <button type="submit">update</button>
 		</form>
 		   <h2 id="isvg">Inline SVG</h2>
@@ -84,10 +84,7 @@ function hedge($hedge) {
 		 {fn:serialize($xml)}
 		 </pre>
 		  <h2>About</h2>
-	Source: <iframe src="http://ghbtns.com/github-btn.html?user=apb2006&amp;repo=hedgetree&amp;type=watch"
-	  allowtransparency="true" frameborder="0" scrolling="0" width="62px" height="20px"></iframe> 
-	 <iframe title="Twitter Follow Button" style="width: 237px; height: 20px;" class="twitter-follow-button" src="http://platform.twitter.com/widgets/follow_button.html?id=twitter-widget-2&amp;lang=en&amp;screen_name=apb1704&amp;show_count=true&amp;show_screen_name=true&amp;size=m" allowtransparency="true" scrolling="no" frameborder="0"></iframe>  
-		</body>
+</body>
 	</html>
 };
 
