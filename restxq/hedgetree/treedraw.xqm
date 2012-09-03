@@ -8,13 +8,20 @@ declare namespace svg= "http://www.w3.org/2000/svg";
 declare namespace  xlink="http://www.w3.org/1999/xlink";
 declare variable $hedge:scale:=10;
 
-declare function hedge:svg($layout){
+declare function hedge:svg($layout as element(node)*) as element(svg:svg){
     let $maxDepth:=fn:max($layout//@depth)
     let $width:=fn:sum($layout/@width)
     return 
     <svg xmlns = "http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox = "0 0 {$width * 2 * $hedge:scale} {$maxDepth * 2 * $hedge:scale}"
     version="1.1" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+	<defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#E3A820;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+	 <rect x = "0" y="0" width = "100%" height="100%" fill="url(#grad1)"/>
         <g transform = "translate(0,-{$hedge:scale div 2}) scale({$hedge:scale})">
           {for $node in $layout return hedge:draw-node($node)}
         </g>
@@ -58,9 +65,8 @@ declare function hedge:draw-node($node  as element(node)){
  )
 };
 
+(:~ guess svg text size :)
 declare function svg-textlen($text as xs:string){
-  (: @TODO better label width 
-  fn:string-length($text) :)
   svg-util:string-width($text) div 20
 };
 
@@ -71,16 +77,19 @@ return element {fn:node-name($n)}
       {$n/@*,
        attribute{ "depth"}{ $depth},
        attribute{ "width"}{width($n)},
-   (:    attribute{ "href"}{"http://github.com"}, :)
       for $child in $n/*
       return layout($child,$depth+1)
       }
 };
 
+(:~ node with is greater of text size and child widths :)
 declare function width($e as element(node)) {
   fn:max((svg-textlen($e/@label),fn:sum($e/*/width(.))))
 };
 
+(:~
+: convert string to xml node representation
+:)
 declare function hedge2xml($hedge as xs:string) as element(node)*{
   if($hedge="") then ()
   else if (fn:substring($hedge, 1, 1)="{") then
@@ -89,19 +98,32 @@ declare function hedge2xml($hedge as xs:string) as element(node)*{
     hedge2xml(fn:substring($hedge,1,1),fn:substring($hedge,2))  
 };
 
-declare %private function hedge2xml($head as xs:string,$rest as xs:string) as element(node)* {
+declare %private function hedge2xml($head as xs:string,$rest as xs:string) as element(node)* { 
  if($head="(" or $head=")"  or $head="") then
-   fn:error() 
+   fn:error(xs:QName('hedge:hedge2xml'),"Syntax error processing '" || $head ||"' remaining string: '" || $rest || "'.") 
  else if (fn:substring($rest,1, 1)="(") then
    let $endPos:=closingParenPos2($rest,2,1)
-   return (<node label="{$head}">{hedge2xml(fn:substring($rest, 2, $endPos -2 ))}</node>
-           ,hedge2xml(fn:substring($rest, 1+$endPos))
-           )        
+   return (node-parse($head,hedge2xml(fn:substring($rest, 2, $endPos -2 )))
+           ,hedge2xml(fn:substring($rest, 1+$endPos)))        
  else 
-     (<node label="{$head}"/> ,hedge2xml($rest))
+     (node-parse($head,()) 
+	 ,hedge2xml($rest))
 };
 
 (:~
+: create node for name, extracting link if present
+:)
+declare %private function node-parse($name as xs:string,$content) as element(node){
+	if(fn:contains($name,"|")) then 
+	   let $label:=fn:substring-before($name,"|")
+	   let $href:=fn:substring-after($name,"|")
+	   return <node label="{$label}" href="{$href}">{$content}</node>
+	else 
+	    <node label="{$name}">{$content}</node>
+};
+
+(:~
+: find string position tarting search at given position
 : @param $arg string to be searched
 : @param $substring what to look for
 : @param $startpos first position to search
