@@ -1,0 +1,16 @@
+<node label="hedgeweb.xqm">
+	<node label="hedge">
+		<node label="getxml" />
+		<node label="tree:layout" />
+		<node label="tree:svg" />
+	</node>
+	<node label="hedge-svg" >
+	<node label="getxml" />
+        <node label="tree:layout" />
+        <node label="tree:svg" />
+	</node>
+	<node label="getxml">
+		<node label="tree:hedge2xml" />
+	</node>
+
+</node>

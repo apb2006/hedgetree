@@ -8,14 +8,20 @@ declare namespace svg= "http://www.w3.org/2000/svg";
 declare namespace  xlink="http://www.w3.org/1999/xlink";
 declare variable $hedge:scale:=10;
 
-declare function hedge:svg($layout as element(node)*) as element(svg:svg){
+declare function hedge:svg($layout as element(node)) as element(svg:svg){
     let $maxDepth:=fn:max($layout//@depth)
-    let $width:=fn:sum($layout/@width)
+    let $width:=$layout/@width
     return 
     <svg xmlns = "http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox = "0 0 {$width * 2 * $hedge:scale} {$maxDepth * 2 * $hedge:scale}"
     version="1.1" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
 	<defs>
+	<style type="text/css">
+    @namespace "http://www.w3.org/2000/svg";
+    text  {{font-family: Verdana, Sans-serif;  }}
+    .line {{stroke-width: 0.05; stroke: black; }}
+	.node {{fill: yellow; stroke: black; stroke-width: 0.05;}}
+  </style>
     <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" style="stop-color:#E3A820;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:1" />
@@ -23,14 +29,17 @@ declare function hedge:svg($layout as element(node)*) as element(svg:svg){
   </defs>
 	 <rect x = "0" y="0" width = "100%" height="100%" fill="url(#grad1)"/>
         <g transform = "translate(0,-{$hedge:scale div 2}) scale({$hedge:scale})">
-          {for $node in $layout return hedge:draw-node($node)}
+          {if($layout/@label) then hedge:draw-node($layout)
+           else for $n in $layout/* 
+                return hedge:draw-node($n)
+           }
         </g>
       </svg>
 };
 
 declare function hedge:draw-node($node  as element(node)){
   (: Calculate X coordinate :)
-  let $x1:=fn:sum($node/preceding::node[@depth = $node/@depth or (fn:not($node/node) and @depth <= $node/@depth)]/@width)
+  let $x1:=fn:sum($node/preceding::node[@depth = $node/@depth or (fn:not(node) and @depth <= $node/@depth)]/@width)
   let $x:=($x1 + ($node/@width div 2)) * 2
   (: Calculate Y coordinate :)
   let $y := $node/@depth * 2
@@ -43,8 +52,8 @@ declare function hedge:draw-node($node  as element(node)){
        attribute xlink:href {$node/@href/fn:string()}
        else ()}
       <title>Debug info: x coord= {$x1}</title>
-      <rect x = "{$x - 0.9*$width}" y="{$y - 1}" width = "{1.8 * $width}" height="1" rx = "0.4" ry = "0.4"
-                style = "fill: yellow; stroke: black; stroke-width: 0.1;"/>
+      <rect class="node" x = "{$x - 0.9*$width}" y="{$y - 1}" width = "{1.8 * $width}" height="1" rx = "0.3" ry = "0.3"
+               />
       <text x = "{$x}" y = "{$y - 0.2}" font-size="0.9" text-anchor="middle">
         {$node/@label/fn:string()}
       </text>
@@ -52,45 +61,50 @@ declare function hedge:draw-node($node  as element(node)){
   </g>,          
   (: lines :)
   for $n in $node/node
-     let $x1:=fn:sum($n/preceding::node[@depth = $n/@depth or (fn:not($n/node) and @depth <= $n/@depth)]/@width)
+     let $x1:=fn:sum($n/preceding::node[@depth = $n/@depth or (fn:not(node) and @depth <= $n/@depth)]/@width)
      let $x2:=($x1 + ($n/@width div 2)) * 2  
-    return  <line x1 = "{$x}"
-              y1 = "{$y}"
-              x2 = "{$x2}"
-              y2 = "{$n/@depth * 2 - 1}"
-              style = "stroke-width: 0.1; stroke: black;"/>
- ,
+    return  <line class="line" x1 = "{$x}" y1 = "{$y}" x2 = "{$x2}" y2 = "{$n/@depth * 2 - 1}"/>
+  ,
  (: Draw sub-nodes :)
  for $n in  $node/node return hedge:draw-node($n)
  )
 };
 
 (:~ guess svg text size :)
-declare function svg-textlen($text as xs:string){
-  svg-util:string-width($text) div 20
+declare function svg-textlen($text) as xs:double{
+  if($text) 
+  then svg-util:string-width($text) div 20 
+  else 0
 };
 
 (: insert depth and width :)
-declare function layout($element as element(node)*,$depth) as element(node)* {
-for $n in $element
-return element {fn:node-name($n)}
-      {$n/@*,
-       attribute{ "depth"}{ $depth},
-       attribute{ "width"}{width($n)},
-      for $child in $n/*
-      return layout($child,$depth+1)
-      }
+declare function layout($node as element(node),$depth) as element(node)* {
+  element {fn:node-name($node)}
+          {$node/@*,
+           attribute{ "depth"}{ $depth},
+           attribute{ "width"}{node-width($node)},
+          for $child in $node/*
+          return layout($child,$depth+1)
+          }
 };
 
 (:~ node with is greater of text size and child widths :)
-declare function width($e as element(node)) {
-  fn:max((svg-textlen($e/@label),fn:sum($e/*/width(.))))
+declare %private function  node-width($e as element(node)) {
+  fn:max((svg-textlen($e/@label),fn:sum($e/*/node-width(.))))
 };
+
 
 (:~
 : convert string to xml node representation
 :)
-declare function hedge2xml($hedge as xs:string) as element(node)*{
+declare function hedge2xml($hedge as xs:string) as element(node){
+let $t:=hedge-head($hedge)
+return if(fn:count($t)>1)then <node>{$t}</node> else $t
+};
+(:~
+: convert string to xml node representation
+:)
+declare function hedge-head($hedge as xs:string) as element(node)*{
   if($hedge="") then ()
   else if (fn:substring($hedge, 1, 1)="{") then
     hedge2xml(fn:substring-before(fn:substring($hedge,2), '}'),fn:substring-after($hedge, '}'))
@@ -103,11 +117,11 @@ declare %private function hedge2xml($head as xs:string,$rest as xs:string) as el
    fn:error(xs:QName('hedge:hedge2xml'),"Syntax error processing '" || $head ||"' remaining string: '" || $rest || "'.") 
  else if (fn:substring($rest,1, 1)="(") then
    let $endPos:=closingParenPos2($rest,2,1)
-   return (node-parse($head,hedge2xml(fn:substring($rest, 2, $endPos -2 )))
-           ,hedge2xml(fn:substring($rest, 1+$endPos)))        
+   return (node-parse($head,hedge-head(fn:substring($rest, 2, $endPos -2 )))
+           ,hedge-head(fn:substring($rest, 1+$endPos)))        
  else 
      (node-parse($head,()) 
-	 ,hedge2xml($rest))
+	 ,hedge-head($rest))
 };
 
 (:~

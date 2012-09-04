@@ -1,0 +1,6 @@
+<node label="loaded" href="hedgetree/sample1.xml">
+  <node label="from"/>
+  <node label="url">
+    <node label="tree" href="#treexml"/>
+  </node>
+</node>
