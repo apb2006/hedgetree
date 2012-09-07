@@ -18,12 +18,15 @@ declare
 function hedge($hedge,$url) {
 	let $ehedge:=if($url) then "" else fn:encode-for-uri($hedge)
 	let $xml:=getxml($hedge,$url) 
-	let $layout:=tree:layout($xml,if($xml/@label) then 1 else 0)
+	let $layout:=tree:layout($xml)
 	let $svg:=tree:svg($layout)
 	 
 	return <html>
 	<head>
 		<title>Drawing trees with XQuery and SVG</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="tree xquery svg" />
 		<script type="text/javascript"><![CDATA[
 		  var _gaq = _gaq || [];
 		  _gaq.push(['_setAccount', 'UA-34544921-1']);
@@ -46,6 +49,7 @@ function hedge($hedge,$url) {
 		<p> Or enter a Url to a xml document examples:
 		<a href="?url=hedgetree/samples/sample1.xml">sample1</a>,
 	<a href="?url=hedgetree/samples/hedgeweb.xml">hedgeweb</a>
+	<a href="?url=https://raw.github.com/apb2006/hedgetree/master/src/hedgetree/samples/hedgeweb.xml">remote</a>
 		  </p>
 		 <form method="get" action="./hedge" style="background-color:#EEEEEE;padding:8px;">
 		 
@@ -96,7 +100,7 @@ declare
 %rest:form-param("dl","{$dl}")
 function hedge-svg($hedge,$url,$dl) {
 	let $xml:=getxml($hedge,$url)
-	let $layout:=tree:layout($xml,1)
+	let $layout:=tree:layout($xml)
 	let $svg:=tree:svg($layout)
 	let $down:=<rest:response> 
             <http:response>

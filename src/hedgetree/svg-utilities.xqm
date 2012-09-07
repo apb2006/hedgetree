@@ -41,5 +41,5 @@ declare function svg-util:count-normal-lower-case($input as xs:string) as xs:int
 
 (: The number of narrow letters like "i" and "l" the number "1" in a string :)
 declare function svg-util:count-narrow($input as xs:string) as xs:integer {
-   string-length(replace($input, '[^il1]*', ''))
+   string-length(replace($input, '[^ijl1]*', ''))
 };

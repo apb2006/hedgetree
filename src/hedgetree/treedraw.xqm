@@ -78,7 +78,11 @@ declare function svg-textlen($text) as xs:double{
 };
 
 (: insert depth and width :)
-declare function layout($node as element(node),$depth) as element(node)* {
+declare function layout($node as element(node)) as element(node) {
+    layout($node,if($node/@label) then 1 else 0) (:dummy node check:)
+};
+
+declare %private function layout($node as element(node),$depth) as element(node) {
   element {fn:node-name($node)}
           {$node/@*,
            attribute{ "depth"}{ $depth},
