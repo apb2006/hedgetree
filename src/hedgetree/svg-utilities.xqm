@@ -36,10 +36,10 @@ declare function svg-util:count-wide($input as xs:string) as xs:integer {
 
 (: The number of normal lowercase letters, number, -, _ except i and l :)
 declare function svg-util:count-normal-lower-case($input as xs:string) as xs:integer {
-   string-length(replace($input, '[^abcdefghknopqrstuvxyz234567890_\-]*', ''))
+   string-length(replace($input, '[^abcdefghjknopqrstuvxyz234567890_\-]*', ''))
 };
 
 (: The number of narrow letters like "i" and "l" the number "1" in a string :)
 declare function svg-util:count-narrow($input as xs:string) as xs:integer {
-   string-length(replace($input, '[^ijl1]*', ''))
+   string-length(replace($input, '[^il1]*', ''))
 };
