@@ -9,7 +9,9 @@ declare default function namespace 'apb.hedge.web';
 import module namespace tree = 'apb.tree' at "hedgetree/treedraw.xqm";
 declare namespace rest = 'http://exquery.org/ns/restxq';
 
-
+(:~
+: main page
+:)
 declare 
 %rest:GET %rest:path("hedge") 
 %output:method("html5")
@@ -91,7 +93,7 @@ function hedge($hedge,$url) {
 	</html>
 };
 
-(:~ @return svg for hedge with download option.
+(:~ @return svg for hedge with download option. cors header
 :)
 declare 
 %rest:GET %rest:path("hedge/svg")
@@ -102,12 +104,15 @@ function hedge-svg($hedge,$url,$dl) {
 	let $xml:=getxml($hedge,$url)
 	let $layout:=tree:layout($xml)
 	let $svg:=tree:svg($layout)
-	let $down:=<rest:response> 
+	let $resp:=<rest:response> 
             <http:response>
-            <http:header name="Content-Disposition" value='attachment;filename="hedge.svg"'/>              
+            <http:header name="Access-Control-Allow-Origin" value="*"/>
+            {if($dl)
+            then <http:header name="Content-Disposition" value='attachment;filename="hedge.svg"'/> 
+            else ()}             
            </http:response>
        </rest:response>
-	return ($down[$dl],$svg) 
+	return ($resp,$svg) 
 };
 
 (:~  use hedge or url :)

@@ -8,6 +8,9 @@ declare namespace svg= "http://www.w3.org/2000/svg";
 declare namespace  xlink="http://www.w3.org/1999/xlink";
 declare variable $hedge:scale:=10;
 
+(:~
+: svg from node xml
+:)
 declare function hedge:svg($layout as element(node)) as element(svg:svg){
     let $maxDepth:=fn:max($layout//@depth)
     let $width:=$layout/@width
@@ -26,6 +29,14 @@ declare function hedge:svg($layout as element(node)) as element(svg:svg){
       <stop offset="0%" style="stop-color:#E3A820;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:1" />
     </linearGradient>
+    <marker id="Triangle"
+                viewBox="0 0 10 10"
+                refX="10" refY="5"
+                markerWidth="4"
+                markerHeight="4"
+                orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" />
+        </marker>
   </defs>
 	 <rect x = "0" y="0" width = "100%" height="100%" fill="url(#grad1)"/>
         <g transform = "translate(0,-{$hedge:scale div 2}) scale({$hedge:scale})">
@@ -51,7 +62,7 @@ declare function hedge:draw-node($node  as element(node)){
       {if($node/@href) then 
        attribute xlink:href {$node/@href/fn:string()}
        else ()}
-      <title>Debug info: x coord= {$x1}</title>
+       <title>{$node/@label/fn:string()}</title>
       <rect class="node" x = "{$x - 0.9*$width}" y="{$y - 1}" width = "{1.8 * $width}" height="1" rx = "0.3" ry = "0.3"
                />
       <text x = "{$x}" y = "{$y - 0.2}" font-size="0.9" text-anchor="middle">
@@ -63,7 +74,8 @@ declare function hedge:draw-node($node  as element(node)){
   for $n in $node/node
      let $x1:=fn:sum($n/preceding::node[@depth = $n/@depth or (fn:not(node) and @depth <= $n/@depth)]/@width)
      let $x2:=($x1 + ($n/@width div 2)) * 2  
-    return  <line class="line" x1 = "{$x}" y1 = "{$y}" x2 = "{$x2}" y2 = "{$n/@depth * 2 - 1}"/>
+    return  <line class="line" x1 = "{$x}" y1 = "{$y}" 
+                  x2 = "{$x2}" y2 = "{$n/@depth * 2 - 1}" marker-end="url(#Triangle)"/>
   ,
  (: Draw sub-nodes :)
  for $n in  $node/node return hedge:draw-node($n)
@@ -105,6 +117,7 @@ declare function hedge2xml($hedge as xs:string) as element(node){
 let $t:=hedge-head($hedge)
 return if(fn:count($t)>1)then <node>{$t}</node> else $t
 };
+
 (:~
 : convert string to xml node representation
 :)
@@ -155,7 +168,9 @@ declare function string-index
          else -1
 };
 
-
+(:~
+: locate closing ) starting as pos
+:)
 declare function closingParenPos2($text as xs:string,$pos as xs:integer ,$depth as xs:integer ) as xs:integer{
   let $start:=string-index($text,"(",$pos)
   let $end:=string-index($text,")",$pos)
