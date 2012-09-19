@@ -93,13 +93,18 @@ function hedge($hedge,$url) {
 	</html>
 };
 
-(:~ @return svg for hedge with download option. cors header
+(:~
+: @param hedge  
+: @param url option location of node xml to use instead of hedge
+: @param dl if present add header to force browser download
+: @return svg for hedge with download option. cors header
 :)
 declare 
 %rest:GET %rest:path("hedge/svg")
 %rest:form-param("hedge","{$hedge}")
 %rest:form-param("url","{$url}")  
 %rest:form-param("dl","{$dl}")
+%output:media-type("image/svg+xml")
 function hedge-svg($hedge,$url,$dl) {
 	let $xml:=getxml($hedge,$url)
 	let $layout:=tree:layout($xml)
