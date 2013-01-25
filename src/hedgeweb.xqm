@@ -14,7 +14,7 @@ declare namespace rest = 'http://exquery.org/ns/restxq';
 :)
 declare 
 %rest:GET %rest:path("hedge") 
-%output:method("html5")
+%output:method("html") %output:version("5.0")
 %rest:form-param("hedge","{$hedge}")
 %rest:form-param("url","{$url}") 
 function hedge($hedge,$url) {
@@ -47,7 +47,7 @@ function hedge($hedge,$url) {
 		<h1>Drawing trees with XQuery and SVG</h1>
 		<p>Enter a  string representing a tree in the form below; use letters for nodes and () to enclose subnodes. Use {{...}} for multi character names. {{name|href}} will create a link. Examples: <a href="?hedge=a(bcd(ef))">a(bcd(ef))</a>,
                   <a href="?hedge={{github|https://github.com/apb2006/hedgetree}}(ab({{tree|%23treexml}}))">another </a>
-		buggy: <a href="?hedge=a(bcd)e(fgh)">a(bcd)e(fgh)</a>.</p>
+		a proper hedge: <a href="?hedge=a(bcd)e(fgh)">a(bcd)e(fgh)</a>.</p>
 		<p> Or enter a Url to a xml document examples:
 		<a href="?url=hedgetree/samples/sample1.xml">sample1</a>,
 	<a href="?url=hedgetree/samples/hedgeweb.xml">hedgeweb</a>
